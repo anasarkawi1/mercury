@@ -11,6 +11,9 @@ from pandas import DataFrame, concat
 import numpy as np
 import json
 
+# Import own library
+import class_calculation
+
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
 import signal
@@ -20,6 +23,10 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
 
+
+# Initialise calculation functions
+calcFunc = class_calculation.Indicators()
+
 # TODO: Fix function return values
 
 
@@ -27,21 +34,7 @@ pd.set_option('display.float_format', lambda x: '%.3f' % x)
 class DataReq:
     # Indicators calculation functions
     # TODO: Seperate these functions into "class_calculation.py" file
-    # Calculate percentage change
-    def pChangeFunc(self, old, new):
-        pChange = new - old
-        pChange = pChange / old
-        pChange = pChange * 100
-        return pChange
-    
-    # Moving average
-    # TODO: A system has to be implemented for moving averages specifically due to their high flexibility. A similar system should be implemented for EMAs they're being implemented.
-    def movingAvg(self, prices):
-        average = 0
-        for price in prices:
-            average += price['close']
-        average = average / len(prices)
-        return average
+
 
     # Request kline data
     # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
@@ -71,22 +64,17 @@ class DataReq:
         # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)
         pVals = [np.nan]
         for i in range(0, len(self.data) - 1):
-            pVals.append(self.pChangeFunc(self.data['close'][i + 1], self.data['close'][i]))
+            pVals.append(calcFunc.pChange(self.data['close'][i + 1], self.data['close'][i]))
         self.data['pChange'] = pVals
 
         # Calculate moving average (length = 5)
         avgArr = []
         maLen = 5
-        for i in range(0, len(self.data) - 1):
-            if len(avgArr) != maLen:
-                avgArr.append(self.data['close'][i])
-            else:
-                avg = np.sum(avgArr)
-                avg = avg / maLen
-                # self.data.loc[price['openTime']]['ma5'] = avg
-                self.data['ma5'][i] = avg
-                avgArr.append(self.data['close'][i])
-                avgArr.pop(0)
+        maLen = maLen - 1 # Accounts for the index start at 0.
+        for i in range(maLen, (len(self.data) - 1) ):
+            prices = self.data['close'][i - maLen : i].to_numpy()
+            avg = calcFunc.movingAvg(prices=prices)
+            self.data['ma5'][i] = avg
 
 
         # Drop NaN should only be used when all initial calculations have been done.
@@ -115,7 +103,7 @@ class DataReq:
             float(kline['c']),
             int(kline['T']),
             float(kline['v']),
-            self.pChangeFunc(self.data['close'][len(self.data) - 1],
+            calcFunc.pChange(self.data['close'][len(self.data) - 1],
             float(kline['c'])),
             np.nan,
             np.nan
