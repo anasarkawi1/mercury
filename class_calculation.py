@@ -6,5 +6,9 @@ class Indicators:
     def rsi(self, df):
         pass
 
+    def pChange(self, old, new):
+        pass
+
+# TODO: Implement level and price action calculations
 class PriceLevel:
     pass
