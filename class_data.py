@@ -28,14 +28,11 @@ pd.set_option('display.float_format', lambda x: '%.3f' % x)
 calcFunc = class_calculation.Indicators()
 
 # TODO: Fix function return values
+# TODO: Make the DataFrame length a constant
 
 
 # Data
 class DataReq:
-    # Indicators calculation functions
-    # TODO: Seperate these functions into "class_calculation.py" file
-
-
     # Request kline data
     # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
     def requestKline(self):
@@ -106,11 +103,19 @@ class DataReq:
             calcFunc.pChange(self.data['close'][len(self.data) - 1],
             float(kline['c'])),
             np.nan,
-            np.nan
+            calcFunc.movingAvg(prices=self.data['close'][ (len(self.data['close']) - 5) : (len(self.data['close'] - 1))])
             ]
 
         # Update new price
         self.data.loc[len(self.data) - 1] = klineArr
+        
+        
+        # Check if the candlestick is closed, if so shift prices
+        if kline['x']:
+            self.data.drop(inplace=True, index=0)
+            self.data.reset_index(inplace=True)
+            self.data.drop(inplace=True, axis=1, columns='index')
+            self.data.loc[len(self.data)] = [np.nan for x in range(len(klineArr))]
 
         print(self.data)
 

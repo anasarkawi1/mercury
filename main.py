@@ -18,7 +18,7 @@ import class_data as data
 
 
 # Define trading object
-trader = data.DataReq(tradingPair='ETHUSDT', interval='1h', limit=40)
+trader = data.DataReq(tradingPair='ETHUSDT', interval='1m', limit=10)
 
 # initialise trader
 trader.initialise()
