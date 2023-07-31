@@ -53,9 +53,12 @@ class DataReq:
         # Insert NaN for data yet to be calculated
         columns['pChange'] = np.nan
         columns['rsi'] = np.nan
+        columns['stochastic'] = np.nan
         columns['ma5'] = np.nan
 
         self.data = DataFrame(data=columns)
+
+        # TODO: Optimise indicator calculations by implementing a single loop system
 
         # Calculate percentage change
         # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)
@@ -63,16 +66,34 @@ class DataReq:
         for i in range(0, len(self.data) - 1):
             pVals.append(calcFunc.pChange(self.data['close'][i + 1], self.data['close'][i]))
         self.data['pChange'] = pVals
+        
 
-        # Calculate moving average (length = 5)
+        # Calculate RSI
+        rsiLength = 14
+        rsiLength = rsiLength - 1 # Accounts for the index start being set to 0
+        for i in range(rsiLength, len(self.data) - 1):
+            prices = self.data['pChange'][i - rsiLength : i].to_numpy()
+            rsi = calcFunc.rsi(prices=prices)
+            self.data['rsi'][i] = rsi
+        
+        # Calculate Stochastic
+        stochasticLength = 14
+        stochasticLength = stochasticLength - 1 # Accounts for the index start being set to 0
+        for i in range(stochasticLength, len(self.data) - 1):
+            prices = self.data['pChange'][i - stochasticLength : i].to_numpy()
+            stochastic = calcFunc.stochastic(prices=prices)
+            self.data['stochastic'][i] = stochastic
+
+        # TODO: Implement a system for the automatic addition of moving averages
+
+        # Calculate moving average (length = 21)
         avgArr = []
         maLen = 5
-        maLen = maLen - 1 # Accounts for the index start at 0.
+        maLen = maLen - 1 # Accounts for the index start being set to 0
         for i in range(maLen, (len(self.data) - 1) ):
             prices = self.data['close'][i - maLen : i].to_numpy()
-            avg = calcFunc.movingAvg(prices=prices)
+            avg = calcFunc.avg(prices=prices)
             self.data['ma5'][i] = avg
-
 
         # Drop NaN should only be used when all initial calculations have been done.
         # self.data = self.data.dropna()
@@ -92,6 +113,7 @@ class DataReq:
         # Convert dict into suitable array
         # [openTime, open, high, low, close, closeTime, volume, pChange.}
         # TODO: Standardise declerations.
+        # TODO: Automate addition of moving averages and insert them at the end of the columns (?)
         klineArr = [
             int(kline['t']),
             float(kline['o']),
@@ -102,8 +124,9 @@ class DataReq:
             float(kline['v']),
             calcFunc.pChange(self.data['close'][len(self.data) - 1],
             float(kline['c'])),
-            np.nan,
-            calcFunc.movingAvg(prices=self.data['close'][ (len(self.data['close']) - 5) : (len(self.data['close'] - 1))])
+            calcFunc.rsi(prices=self.data['pChange'][ (len(self.data['pChange']) - 14) : (len(self.data['pChange'] - 2)) ].to_numpy() ), # RSI
+            calcFunc.stochastic(prices=self.data['pChange'][ (len(self.data['pChange']) - 14) : (len(self.data['pChange'] - 2)) ].to_numpy() ), # Stochastic
+            calcFunc.avg(prices=self.data['close'][ (len(self.data['close']) - 21) : (len(self.data['close'] - 1))] )
             ]
 
         # Update new price
@@ -159,7 +182,13 @@ class DataReq:
         # Price levels
         # TODO: Implement level and price action calculations
         self.levels = {
-            'resistance': [],
+            'resistance': DataFrame(data=self.dataColumns),
             'support': DataFrame(data=self.dataColumns)
         }
+
+        # Indicators data
+        self.indicatorData = {}
+        # Moving average data
+        # TODO: Automate moving average calculation by obtaining length values from a global list
+        self.indicatorData['movingAvg'] = {}
 

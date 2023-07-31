@@ -18,8 +18,13 @@ import class_data as data
 
 
 # Define trading object
-trader = data.DataReq(tradingPair='ETHUSDT', interval='1m', limit=10)
+trader = data.DataReq(tradingPair='ETHUSDT', interval='1h', limit=50)
 
 # initialise trader
 trader.initialise()
 
+
+# Configuration
+config = {
+    'standalone': True, # Configures the package to work in standalone mode using a RESTful API
+}
