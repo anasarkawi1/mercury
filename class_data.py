@@ -13,6 +13,7 @@ import json
 
 # Import own library
 import class_calculation
+from connector.binance import Binance
 
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
@@ -31,7 +32,8 @@ calcFunc = class_calculation.Indicators()
 # TODO: Make the DataFrame length a constant
 
 
-# Data
+# Data Request class
+# Used for the retrieval and update of historical and live price data.
 class DataReq:
     # Request kline data
     # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
@@ -140,13 +142,13 @@ class DataReq:
             self.data.drop(inplace=True, axis=1, columns='index')
             self.data.loc[len(self.data)] = [np.nan for x in range(len(klineArr))]
 
-        print(self.data)
+        # print(self.data)
 
     # Initialize data frame
     def initialise(self, priceLevel=True):
         # Request for data and format it into a pandas dataframe
         self.requestKline()
-        print(self.data)
+        # print(self.data)
         print('Kline data has been recieved. Initialising WebSocket connection...')
 
         # Initialise WebSocket client
@@ -163,8 +165,11 @@ class DataReq:
         }
         
         # Define Binance clients for the REST API and WebSocket interfaces.
-        self.client = Spot()
-        self.wsClient = WebSocketClient(on_message=self.wsHandler)
+        self.exchanges = {
+            "binance": Binance(wshandler=self.wsHandler)
+        }
+        self.client = self.exchanges['binance'].clients['spot']
+        self.wsClient = self.exchanges['binance'].clients['ws']
 
         # Define column names for the pandas DataFrame
         self.dataColumns = {
@@ -192,3 +197,18 @@ class DataReq:
         # TODO: Automate moving average calculation by obtaining length values from a global list
         self.indicatorData['movingAvg'] = {}
 
+
+
+# Account class
+class AccountData:
+    def __init__():
+        pass
+
+    def snapshot():
+        pass
+
+    def assests():
+        pass
+
+    def apiRestrictions():
+        pass
