@@ -127,7 +127,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.ini
+*.ini
 
 # Spyder project settings
 .spyderproject
@@ -162,3 +162,4 @@ cython_debug/
 
 local_client/
 test.py
+notes.txt

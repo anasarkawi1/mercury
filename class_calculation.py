@@ -4,6 +4,10 @@
 
 import numpy as np
 
+
+# TODO: Implement custom parameters for indicators (e.g. lengths)
+
+
 # Technical indicators
 class Indicators:
     def pChange(self, old, new):
@@ -13,7 +17,7 @@ class Indicators:
         return pChange
     
     # RSI Calculation
-    # TODO: Improve calculations by reducing operations
+    # TODO: Implement second part of RSI
     def rsi(self, prices):
         rsi = 0
         # Average gain calculation
