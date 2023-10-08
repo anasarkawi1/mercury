@@ -38,7 +38,7 @@ class DataReq:
         # Get raw data
         self.data = self.exchange.historicData()
         # Define DataFrame for indicator calculations
-        self.indicatorData = DataFrame(columns=self.dataColumnsNames)
+        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'] - 1))
 
 
         # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)   
@@ -113,7 +113,7 @@ class DataReq:
             self.indicatorData.drop(inplace=True, index=0)
             self.indicatorData.reset_index(inplace=True)
             self.indicatorData.drop(inplace=True, axis=1, columns='index')
-            self.indicatorData.loc[len(self.data)] = [np.nan for x in range(len(self.indicatorData))]
+            self.indicatorData.loc[len(self.indicatorData)] = [np.nan for x in range(len(self.indicatorData.columns))]
 
     
 
@@ -199,19 +199,19 @@ class DataReq:
         self.tradeInProgress = False
 
 
-    def buy(self, quantity, stopLoss):
-        response = self.exchanges["binance"].buy(quantity=quantity, stopLoss=stopLoss)
+    def buy(self, quantity):
+        response = self.exchange.buy(quantity=quantity)
         return response
 
-    def sell(self, quantity, stopLoss):
-        response = self.exchanges["binance"].sell(quantity=quantity, stopLoss=stopLoss)
+    def sell(self, quantity):
+        response = self.exchange.sell(quantity=quantity)
         return response
     
     
     # Algorithm functions
 
     def algoCreate(self, algoParams, id=0):
-        algoParams.quantity = self.exchanges["binance"].account()["assets"]["USDT"]["free"]
+        algoParams.quantity = self.exchange.account()["assets"]["USDT"]["free"]
         self.algo = algoParams
 
     # Algorithm function. Runs the user-defined algorithm supplied from self.algo.
