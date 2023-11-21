@@ -3,6 +3,13 @@
 Mercury is a core package used in Lycon project which is a platform for traders to use and employ Quantitative Finance in their trading. The tool is still a work in progress and so far only works with Binance APIs.
 
 
+# Example Usage
+
+DISCLAIMER: this is just an example of how to interact with the llibrary, and it is not an example of a viable algorithm that can be used to trade for profit. Look at the **Disclaimer** section for more information on using this library to trade.
+
+In the `main.py` file there's a short example algorithm which buys ETH when the RSI level is 40 or below, indicating that the asset may be oversold, and sells the bought ETH when the RSI level is 60 or above.
+
+
 ## Features
 
 The package has many features including:

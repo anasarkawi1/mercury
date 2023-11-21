@@ -21,6 +21,13 @@ import json
 #   tradingPair: denotes the symbol to be traded,
 #   interval: candlestick period,
 #   limit: number of past candles that should be obtained.
+
+def spotMode(credentials, baseURL):
+    if credentials == None:
+        return Spot(base_url=baseURL)
+    else:
+        return Spot(api_key=credentials[0], api_secret=credentials[1], base_url=baseURL)
+
 class Binance:
     def __init__(self, mode='live', tradingPair=None, interval=None, limit=75, credentials=["", ""], columns=None, wshandler=None):
         if mode == 'live':
@@ -31,13 +38,9 @@ class Binance:
             baseWsURL = 'wss://testnet.binance.vision'
         # Connect the spot and websocket clients
         self.clients = {
-            "spot": None,
+            "spot": spotMode(credentials=credentials, baseURL=baseURL),
             "ws": WebSocketClient(on_message=self.wsHandlerInternal, stream_url=baseWsURL),
         }
-        if credentials == None:
-            self.clients['spot'] = Spot(base_url=baseURL)
-        else:
-            self.clients['spot'] = Spot(api_key=credentials[0], api_secret=credentials[1], base_url=baseURL)
         self.options = {
             "tradingPair": tradingPair,
             "interval": interval,

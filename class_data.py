@@ -36,6 +36,7 @@ class DataReq:
     # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
     def requestKline(self):
         # Get raw data
+        # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
         # Define DataFrame for indicator calculations
         self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'] - 1))
@@ -104,6 +105,7 @@ class DataReq:
 
         # Check if candlestick is closed, if so, shift prices.
         # implement for indicator data
+        # TODO: URGENT: The drop happens and the index gets shifted which causes a race condition that throws and exception
         if closed:
             self.data.drop(inplace=True, index=0)
             self.data.reset_index(inplace=True)
@@ -114,6 +116,9 @@ class DataReq:
             self.indicatorData.reset_index(inplace=True)
             self.indicatorData.drop(inplace=True, axis=1, columns='index')
             self.indicatorData.loc[len(self.indicatorData)] = [np.nan for x in range(len(self.indicatorData.columns))]
+
+        # Return update to original instance
+        self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
 
     
 
@@ -134,7 +139,7 @@ class DataReq:
 
     # Instance initialization
     # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
-    def __init__(self, mode, tradingPair, interval, limit, credentials, exchange=None):
+    def __init__(self, mode, tradingPair, interval, limit, credentials, exchange=None, updateCallback=None):
         # Define options for the trader instance
         self.options = {
             'tradingPair': tradingPair,
@@ -142,6 +147,8 @@ class DataReq:
             'limit': limit,
             'threshold': 0.25
         }
+
+        self.updateCallback = updateCallback
 
         # Define column names for the pandas DataFrame
         # The addition of indicators are done through the below array. A configuration file should be used to define the below information.

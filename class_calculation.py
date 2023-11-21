@@ -45,7 +45,9 @@ class Indicators:
         cMin = np.min(prices)
 
         val = cMax - cMin
-        val = ((prices[len(prices) - 1]) - cMin) / val
+        # Check if val = 0
+        if val != 0:
+            val = ((prices[len(prices) - 1]) - cMin) / val
         val = 100 * val
 
         return val
