@@ -163,3 +163,4 @@ cython_debug/
 local_client/
 test.py
 notes.txt
+_test_*
