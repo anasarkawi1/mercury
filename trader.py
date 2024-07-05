@@ -31,7 +31,7 @@ calcFunc = class_calculation.Indicators()
 # Used for the retrieval and update of historical and live price data.
 # TODO: Fix function return values
 # TODO: Make the DataFrame length a constant
-class DataReq:
+class Trader:
     # Request kline data
     # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
     def requestKline(self):
