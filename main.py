@@ -1,14 +1,12 @@
-# Algorithmic reading bot v0.1
+# Algorithmic treading bot v0.1
 # Example usage.
 # By Anas Arkawi, 2023.
 # This file is an example on how the bot can be used to write a simple algorithm which buys ETH when RSI value is at 30 or below, and sells the entire ETH balance (i.e. whatever was filled in the first trade) when RSI is at or above 70.
 
 
 # Import libraries
-import json
 from dotenv import load_dotenv 
 import os
-import time
 
 
 # Import own class

@@ -39,7 +39,7 @@ class DataReq:
         # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
         # Define DataFrame for indicator calculations
-        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'] - 1))
+        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'] - 1)) # WHY TH IS THIS -1?????????
 
 
         # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)   
@@ -62,13 +62,19 @@ class DataReq:
 
         # TODO: Implement a system for the automatic addition of moving averages
         # Calculate moving average (length = 21)
-        avgArr = []
-        maLen = 21
-        maLen = maLen - 1 # Accounts for the index start being set to 0
-        for i in range(maLen, (len(self.data) - 1) ):
-            prices = self.data.loc[i - maLen : i, "close"].to_numpy()
-            avg = calcFunc.avg(prices=prices)
-            self.indicatorData.loc[i, "SMA21"] = avg
+
+        def calcHistoricSMA(maLen, arr):
+            lenAdjusted = maLen - 1 # Accounts for the index starting at 0
+            calcArr = np.array([])
+            for i in range(len(arr) - maLen):
+                currentSlice = arr[ i : maLen + i]
+                calcArr = np.append(calcArr, np.mean(currentSlice))
+            nanArr = [np.nan for i in range(maLen - 1)]
+            print(f'len of nan: {len(nanArr)}')
+            return np.concatenate((nanArr, calcArr))
+
+        sma21 = calcHistoricSMA(7, np.array(self.data['close']))
+        self.indicatorData["SMA21"] = sma21
 
 
     # Live price updater.
@@ -106,6 +112,7 @@ class DataReq:
         # Check if candlestick is closed, if so, shift prices.
         # implement for indicator data
         # TODO: URGENT: The drop happens and the index gets shifted which causes a race condition that throws and exception
+        # TODO: This issue still persists?? Possible solution: Call the external callback when the functions of the if statement gets done.
         if closed:
             self.data.drop(inplace=True, index=0)
             self.data.reset_index(inplace=True)
@@ -145,7 +152,7 @@ class DataReq:
             'tradingPair': tradingPair,
             'interval': interval,
             'limit': limit,
-            'threshold': 0.25
+            # 'threshold': 0.25
         }
 
         self.updateCallback = updateCallback
