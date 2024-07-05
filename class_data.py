@@ -64,7 +64,6 @@ class DataReq:
         # Calculate moving average (length = 21)
 
         def calcHistoricSMA(maLen, arr):
-            lenAdjusted = maLen - 1 # Accounts for the index starting at 0
             calcArr = np.array([])
             for i in range(len(arr) - maLen):
                 currentSlice = arr[ i : maLen + i]
@@ -73,8 +72,14 @@ class DataReq:
             print(f'len of nan: {len(nanArr)}')
             return np.concatenate((nanArr, calcArr))
 
-        sma21 = calcHistoricSMA(7, np.array(self.data['close']))
-        self.indicatorData["SMA21"] = sma21
+        sma10 = calcHistoricSMA(10, np.array(self.data['close']))
+        self.indicatorData["SMA10"] = sma10
+
+        sma20 = calcHistoricSMA(20, np.array(self.data['close']))
+        self.indicatorData["SMA20"] = sma20
+
+        sma50 = calcHistoricSMA(50, np.array(self.data['close']))
+        self.indicatorData["SMA50"] = sma50
 
 
     # Live price updater.
@@ -159,7 +164,7 @@ class DataReq:
 
         # Define column names for the pandas DataFrame
         # The addition of indicators are done through the below array. A configuration file should be used to define the below information.
-        self.dataColumnsNames = ["RSI", "STOCHASTIC", "SMA21"]
+        self.dataColumnsNames = ["RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
         self.dataColumns = {
             'openTime': [],
             'open': [],
