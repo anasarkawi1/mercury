@@ -229,13 +229,23 @@ class Trader:
     
     # Algorithm functions
 
-    def algoCreate(self, algoParams, id=0):
-        algoParams.quantity = self.exchange.account()["assets"]["USDT"]["free"]
-        self.algo = algoParams
+    # Recieves an object with the parameters for the algorithm. Each instance should have a single algorithm.
+    def algoCreate(self, algoParams):
+        pass
+
+    # Recieves a state for the drunk
+    def algoRun():
+        pass
+
+
+    def algoCreateOLD(self, algoParams, id=0):
+        # algoParams.quantity = self.exchange.account()["assets"]["USDT"]["free"]
+        # self.algo = algoParams
+        pass
 
     # Algorithm function. Runs the user-defined algorithm supplied from self.algo.
     # Current implementation was scrapped, but can be accessed in GitHub Gist. Check issue #5 for more information on the matter.
-    def algoRun(self):
+    def algoRunOLD(self):
         if self.algo == None:
             return False
         return True
