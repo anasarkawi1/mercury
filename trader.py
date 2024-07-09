@@ -13,8 +13,8 @@ import json
 from dataclasses import dataclass
 
 # Import own library
-from mercury import class_calculation
-from mercury.connector.main import Connector
+from . import class_calculation
+from .connector.main import Connector
 
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
