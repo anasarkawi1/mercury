@@ -10,6 +10,7 @@ import pandas as pd
 from pandas import DataFrame, concat
 import numpy as np
 import json
+from dataclasses import dataclass
 
 # Import own library
 import class_calculation
@@ -229,9 +230,31 @@ class Trader:
     
     # Algorithm functions
 
+    @dataclass
+    class AlgoDefs:
+        indicatorStrategy: bool
+
+        # Indicators to be used (if indicatorStrategy is true)
+        buyEnabled: list
+        sellEnabled: list
+
+        # Change in moving averages to be used (if indicatorStrategy is false.)
+        # TODO: How the hell would you implement difference between MAs??
+        changeBuy: list
+        changeSell: list
+
+        # Trade information
+        quantity: float
+
+        # Parameters
+        indicators: object # TODO: define the object
+        change: object # TODO: same as above
+
+
+
     # Recieves an object with the parameters for the algorithm. Each instance should have a single algorithm.
     def algoCreate(self, algoParams):
-        pass
+        self.algoParams = algoParams
 
     # Recieves a state for the drunk
     def algoRun():
