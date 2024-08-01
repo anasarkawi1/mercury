@@ -205,12 +205,12 @@ class Trader:
                 "callback": None,
                 "args": {},
             },
-            "SMA10": {
+            "SMA20": {
                 "length": 21,
                 "callback": None,
                 "args": {},
             },
-            "SMA10": {
+            "SMA50": {
                 "length": 21,
                 "callback": None,
                 "args": {},
