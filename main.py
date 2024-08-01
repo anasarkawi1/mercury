@@ -10,7 +10,7 @@ import os
 
 
 # Import own class
-import trader as data
+import mercuryFramework.trader as data
 
 
 # Acquire environment variables for API credentials
