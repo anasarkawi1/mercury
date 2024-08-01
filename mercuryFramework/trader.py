@@ -106,9 +106,17 @@ class Trader:
         stochastic = calcFunc.stochastic(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['STOCHASTIC']['length']) : len(self.data) - 1, 'close'].to_numpy()))
         indicatorArr.append(stochastic)
 
-        # SMA21
-        sma21 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA21']['length']) : len(self.data) - 1, 'close'].to_numpy()))
-        indicatorArr.append(sma21)
+        # SMA10
+        sma10 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA10']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        indicatorArr.append(sma10)
+
+        # SMA20
+        sma20 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA20']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        indicatorArr.append(sma20)
+
+        # SMA50
+        sma50 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA50']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        indicatorArr.append(sma50)
 
         # Insert into df
         # URGENT: the new data is being written into 15th index since thats the length of the df
@@ -165,6 +173,7 @@ class Trader:
 
         # Define column names for the pandas DataFrame
         # The addition of indicators are done through the below array. A configuration file should be used to define the below information.
+        # TODO: URGENT: These should be derived from indicatorsParameterData. Right now I'm working on the backend of lycon so this is secondary.
         self.dataColumnsNames = ["RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
         self.dataColumns = {
             'openTime': [],
@@ -191,11 +200,21 @@ class Trader:
                 "callback": None,
                 "args": {},
             },
-            "SMA21": {
+            "SMA10": {
                 "length": 21,
                 "callback": None,
                 "args": {},
-            }
+            },
+            "SMA10": {
+                "length": 21,
+                "callback": None,
+                "args": {},
+            },
+            "SMA10": {
+                "length": 21,
+                "callback": None,
+                "args": {},
+            },
         }
 
 
