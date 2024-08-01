@@ -201,17 +201,17 @@ class Trader:
                 "args": {},
             },
             "SMA10": {
-                "length": 21,
+                "length": 10,
                 "callback": None,
                 "args": {},
             },
             "SMA20": {
-                "length": 21,
+                "length": 20,
                 "callback": None,
                 "args": {},
             },
             "SMA50": {
-                "length": 21,
+                "length": 50,
                 "callback": None,
                 "args": {},
             },
