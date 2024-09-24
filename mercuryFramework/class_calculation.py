@@ -51,6 +51,23 @@ class Indicators:
         val = 100 * val
 
         return val
+    
+    def stochasticNew(self, prices):
+        # For the calculation of the stochastic indicator we need,
+        #   - Current close price (i.e. the last value)
+        #   - The lowest price in the range
+        #   - The highest price in the range
+
+        # Retrieve vals
+        currentClose = prices.iat[-1]
+        lowest = prices.min()
+        highest = prices.max()
+
+        # Perform calculations
+        val = (currentClose - lowest) / (highest - lowest)
+        val = val * 100
+
+        return val
 
     def macd(self, prices):
         pass

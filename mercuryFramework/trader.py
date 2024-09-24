@@ -55,32 +55,40 @@ class Trader:
         
         # Calculate Stochastic
         stochasticLength = 14
-        stochasticLength = stochasticLength - 1 # Accounts for the index start being set to 0
-        for i in range(stochasticLength, len(self.data) - 1):
-            prices = self.data.loc[i - stochasticLength : i, "close"].to_numpy()
-            stochastic = calcFunc.stochastic(prices=prices)
-            self.indicatorData.loc[i, "STOCHASTIC"] = stochastic
+        #   stochasticLength = stochasticLength - 1 # Accounts for the index start being set to 0
+        #   for i in range(stochasticLength, len(self.data) - 1):
+        #       prices = self.data.loc[i - stochasticLength : i, "close"].to_numpy()
+        #       stochastic = calcFunc.stochastic(prices=prices)
+        #       self.indicatorData.loc[i, "STOCHASTIC"] = stochastic
+        self.indicatorData['STOCHASTIC'] = self.data['close'].rolling(stochasticLength).apply(calcFunc.stochasticNew)
+
 
         # TODO: Implement a system for the automatic addition of moving averages
-        # Calculate moving average (length = 21)
 
-        def calcHistoricSMA(maLen, arr):
-            calcArr = np.array([])
-            for i in range(len(arr) - maLen):
-                currentSlice = arr[ i : maLen + i]
-                calcArr = np.append(calcArr, np.mean(currentSlice))
-            nanArr = [np.nan for i in range(maLen - 1)]
-            print(f'len of nan: {len(nanArr)}')
-            return np.concatenate((nanArr, calcArr))
+        #   !! CUSTOM SMA FUNCTIONS !!
+        #
+        #   def calcHistoricSMA(maLen, arr):
+        #       calcArr = np.array([])
+        #       for i in range(len(arr) - maLen):
+        #           currentSlice = arr[ i : maLen + i]
+        #           calcArr = np.append(calcArr, np.mean(currentSlice))
+        #       nanArr = [np.nan for i in range(maLen - 1)]
+        #       # print(f'len of nan: {len(nanArr)}')
+        #       return np.concatenate((nanArr, calcArr))
+        #   
+        #   sma10 = calcHistoricSMA(10, np.array(self.data['close']))
+        #   self.indicatorData["SMA10"] = sma10
+        #   
+        #   sma20 = calcHistoricSMA(20, np.array(self.data['close']))
+        #   self.indicatorData["SMA20"] = sma20
+        #   
+        #   sma50 = calcHistoricSMA(50, np.array(self.data['close']))
+        #   self.indicatorData["SMA50"] = sma50
 
-        sma10 = calcHistoricSMA(10, np.array(self.data['close']))
-        self.indicatorData["SMA10"] = sma10
-
-        sma20 = calcHistoricSMA(20, np.array(self.data['close']))
-        self.indicatorData["SMA20"] = sma20
-
-        sma50 = calcHistoricSMA(50, np.array(self.data['close']))
-        self.indicatorData["SMA50"] = sma50
+        # !! SMA WITH PD FUNCTIONS !!
+        self.indicatorData["SMA10"] = self.data['close'].rolling(10).mean()
+        self.indicatorData["SMA20"] = self.data['close'].rolling(20).mean()
+        self.indicatorData["SMA50"] = self.data['close'].rolling(50).mean()
 
 
     # Live price updater.
@@ -160,7 +168,7 @@ class Trader:
 
     # Instance initialization
     # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
-    def __init__(self, mode, tradingPair, interval, limit, credentials, exchange=None, updateCallback=None):
+    def __init__(self, mode, tradingPair, interval, credentials, limit=150, exchange=None, updateCallback=None):
         # Define options for the trader instance
         self.options = {
             'tradingPair': tradingPair,
