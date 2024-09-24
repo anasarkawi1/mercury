@@ -47,45 +47,19 @@ class Trader:
 
         # Calculate RSI
         rsiLength = 14
-        rsiLength = rsiLength - 1 # Accounts for the index start being set to 0
-        for i in range(rsiLength, len(self.data) - 1):
-            prices = self.data.loc[i - rsiLength : i, "pChange"].to_numpy() 
-            rsi = calcFunc.rsi(prices=prices)
-            self.indicatorData.loc[i, "RSI"] = rsi
-        
+        #   rsiLength = rsiLength - 1 # Accounts for the index start being set to 0
+        #   for i in range(rsiLength, len(self.data) - 1):
+        #       prices = self.data.loc[i - rsiLength : i, "pChange"].to_numpy() 
+        #       rsi = calcFunc.rsi(prices=prices)
+        #       self.indicatorData.loc[i, "RSI"] = rsi
+        self.indicatorData['RSI'] = self.data['close'].rolling(rsiLength).apply(calcFunc.rsiNew)
+
         # Calculate Stochastic
         stochasticLength = 14
-        #   stochasticLength = stochasticLength - 1 # Accounts for the index start being set to 0
-        #   for i in range(stochasticLength, len(self.data) - 1):
-        #       prices = self.data.loc[i - stochasticLength : i, "close"].to_numpy()
-        #       stochastic = calcFunc.stochastic(prices=prices)
-        #       self.indicatorData.loc[i, "STOCHASTIC"] = stochastic
         self.indicatorData['STOCHASTIC'] = self.data['close'].rolling(stochasticLength).apply(calcFunc.stochasticNew)
 
 
         # TODO: Implement a system for the automatic addition of moving averages
-
-        #   !! CUSTOM SMA FUNCTIONS !!
-        #
-        #   def calcHistoricSMA(maLen, arr):
-        #       calcArr = np.array([])
-        #       for i in range(len(arr) - maLen):
-        #           currentSlice = arr[ i : maLen + i]
-        #           calcArr = np.append(calcArr, np.mean(currentSlice))
-        #       nanArr = [np.nan for i in range(maLen - 1)]
-        #       # print(f'len of nan: {len(nanArr)}')
-        #       return np.concatenate((nanArr, calcArr))
-        #   
-        #   sma10 = calcHistoricSMA(10, np.array(self.data['close']))
-        #   self.indicatorData["SMA10"] = sma10
-        #   
-        #   sma20 = calcHistoricSMA(20, np.array(self.data['close']))
-        #   self.indicatorData["SMA20"] = sma20
-        #   
-        #   sma50 = calcHistoricSMA(50, np.array(self.data['close']))
-        #   self.indicatorData["SMA50"] = sma50
-
-        # !! SMA WITH PD FUNCTIONS !!
         self.indicatorData["SMA10"] = self.data['close'].rolling(10).mean()
         self.indicatorData["SMA20"] = self.data['close'].rolling(20).mean()
         self.indicatorData["SMA50"] = self.data['close'].rolling(50).mean()

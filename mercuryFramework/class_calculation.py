@@ -39,6 +39,18 @@ class Indicators:
         rsi = 100 / rsi
         rsi = 100 - rsi
         return rsi
+    
+    def rsiNew(self, prices):
+        diff = np.diff(prices)
+
+        avgGain = np.average(diff[diff > 0])
+        avgLoss = np.average(np.abs(diff[diff < 0]))
+
+        rs = avgGain/avgLoss
+        rsiVal = 100/(1+rs)
+        rsiVal = 100 - rsiVal
+
+        return rsiVal
 
     def stochastic(self, prices):
         cMax = np.max(prices)
