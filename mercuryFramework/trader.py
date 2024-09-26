@@ -40,7 +40,9 @@ class Trader:
         # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
         # Define DataFrame for indicator calculations
-        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'] - 1)) # WHY TH IS THIS -1?????????
+        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'])) # WHY TH IS THIS -1????????? # YEAH ACTUALLY WHY IS IT - 1??? AND MORE IMPORTANTLY, WHY DID U JUST THINK OF REMOVING IT SMH.
+
+        self.indicatorData['openTime'] = self.data['openTime']
 
 
         # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)   
@@ -71,33 +73,41 @@ class Trader:
     def dataHandler(self, data, closed):
         # Update price
         # Calculation of pChange is done before insertion since it's used in indicator calculations
-        data[len(data) - 1] = calcFunc.pChange(data[4], self.data.loc[len(self.data) - 2, 'close'])
+        # TODO: URGENT: revise this, probably wrong.
+        # data[len(data) - 1] = calcFunc.pChange(data[4], self.data.loc[len(self.data) - 2, 'close'])
+        data[-1] = calcFunc.pChange(new=data[4], old=self.data['close'][len(self.data) - 2])
         self.data.loc[len(self.data) - 1] = data
+        # self.data[-1] = data
 
 
         # TODO: Automate indicator calculation
         # Indicator calculations are done in a seperate array but with data supplied from self.data
-        indicatorArr = []
+        indicatorArr = [data[0]]
         lastPriceIndex = len(self.data) - 1
 
         # RSI
-        rsi = calcFunc.rsi(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['RSI']['length']) : len(self.data) - 1, 'pChange'].to_numpy()))
+        # rsi = calcFunc.rsi(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['RSI']['length']) : len(self.data) - 1, 'pChange'].to_numpy()))
+        rsi = calcFunc.rsiNew(self.data['close'][-14:])
         indicatorArr.append(rsi)
 
         # Stochastic
-        stochastic = calcFunc.stochastic(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['STOCHASTIC']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        # stochastic = calcFunc.stochastic(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['STOCHASTIC']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        stochastic = calcFunc.stochasticNew(self.data['close'][-14:])
         indicatorArr.append(stochastic)
 
         # SMA10
-        sma10 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA10']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        # sma10 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA10']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        sma10 = np.mean(self.data['close'][-10:])
         indicatorArr.append(sma10)
 
         # SMA20
-        sma20 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA20']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        # sma20 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA20']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        sma20 = np.mean(self.data['close'][-20:])
         indicatorArr.append(sma20)
 
         # SMA50
-        sma50 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA50']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        # sma50 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA50']['length']) : len(self.data) - 1, 'close'].to_numpy()))
+        sma50 = np.mean(self.data['close'][-50:])
         indicatorArr.append(sma50)
 
         # Insert into df
@@ -156,7 +166,7 @@ class Trader:
         # Define column names for the pandas DataFrame
         # The addition of indicators are done through the below array. A configuration file should be used to define the below information.
         # TODO: URGENT: These should be derived from indicatorsParameterData. Right now I'm working on the backend of lycon so this is secondary.
-        self.dataColumnsNames = ["RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
+        self.dataColumnsNames = ["openTime", "RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
         self.dataColumns = {
             'openTime': [],
             'open': [],

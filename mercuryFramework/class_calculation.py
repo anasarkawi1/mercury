@@ -11,10 +11,8 @@ import numpy as np
 # Technical indicators
 class Indicators:
     def pChange(self, old, new):
-        pChange = new - old
-        pChange = pChange / old
-        pChange = pChange * 100
-        return pChange
+        pChange = (new - old) / old
+        return pChange * 100
     
     # RSI Calculation
     # TODO: Implement second part of RSI

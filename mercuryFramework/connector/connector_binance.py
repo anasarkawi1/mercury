@@ -181,6 +181,7 @@ class Binance:
     # ^ Test the callback idea first.
     def initiateLiveData(self):
         # Start the WS connection
+        # TODO: URGENT: Should it be here? The initial current candlestick insertion (Is this fixed? Indicator data problem is fixed now)
         self.clients["ws"].kline(symbol=self.options['tradingPair'], interval=self.options["interval"])
 
     # Call everytime a new WebSocket message from the stream is recieved. Never called outside the class, but from the internal WS client instance.
