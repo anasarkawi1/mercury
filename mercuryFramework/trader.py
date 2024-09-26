@@ -62,9 +62,12 @@ class Trader:
 
 
         # TODO: Implement a system for the automatic addition of moving averages
-        self.indicatorData["SMA10"] = self.data['close'].rolling(10).mean()
-        self.indicatorData["SMA20"] = self.data['close'].rolling(20).mean()
-        self.indicatorData["SMA50"] = self.data['close'].rolling(50).mean()
+        # self.indicatorData["SMA10"] = self.data['close'].rolling(10).mean()
+        # self.indicatorData["SMA20"] = self.data['close'].rolling(20).mean()
+        # self.indicatorData["SMA50"] = self.data['close'].rolling(50).mean()
+        for label, params in self.movingAverageParams.items():
+            print(params)
+            self.indicatorData[label] = self.data['close'].rolling(params['length']).mean()
 
 
     # Live price updater.
@@ -80,39 +83,40 @@ class Trader:
         # self.data[-1] = data
 
 
-        # TODO: Automate indicator calculation
         # Indicator calculations are done in a seperate array but with data supplied from self.data
-        indicatorArr = [data[0]]
-        lastPriceIndex = len(self.data) - 1
+
+        # TODO: I feel like there should be anohter check here (current open == update open?)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('openTime')] = data[0]
 
         # RSI
-        # rsi = calcFunc.rsi(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['RSI']['length']) : len(self.data) - 1, 'pChange'].to_numpy()))
         rsi = calcFunc.rsiNew(self.data['close'][-14:])
-        indicatorArr.append(rsi)
+        # indicatorArr.append(rsi)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('RSI')] = rsi
 
         # Stochastic
-        # stochastic = calcFunc.stochastic(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['STOCHASTIC']['length']) : len(self.data) - 1, 'close'].to_numpy()))
         stochastic = calcFunc.stochasticNew(self.data['close'][-14:])
-        indicatorArr.append(stochastic)
+        # indicatorArr.append(stochastic)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('STOCHASTIC')] = stochastic
 
         # SMA10
-        # sma10 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA10']['length']) : len(self.data) - 1, 'close'].to_numpy()))
         sma10 = np.mean(self.data['close'][-10:])
-        indicatorArr.append(sma10)
+        # indicatorArr.append(sma10)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA10')] = sma10
 
         # SMA20
-        # sma20 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA20']['length']) : len(self.data) - 1, 'close'].to_numpy()))
         sma20 = np.mean(self.data['close'][-20:])
-        indicatorArr.append(sma20)
+        # indicatorArr.append(sma20)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA20')] = sma20
 
         # SMA50
-        # sma50 = calcFunc.avg(prices=(self.data.loc[ (len(self.data) - self.indicatorParameterData['SMA50']['length']) : len(self.data) - 1, 'close'].to_numpy()))
         sma50 = np.mean(self.data['close'][-50:])
-        indicatorArr.append(sma50)
+        # indicatorArr.append(sma50)
+        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA50')] = sma50
 
         # Insert into df
         # URGENT: the new data is being written into 15th index since thats the length of the df
-        self.indicatorData.iloc[-1] = indicatorArr
+        # TODO: Here!!! There's no insertion of appending to the series. Instead, the last row is directly modified. Instead of modifying the row in one go, possibly leading to a mismatch if we appended the indicator values directly to a temp array (could it tho? Not sure, still feels like the following is a better approach, albeit maybe slow) we can modify the records directly for each column.
+        # self.indicatorData.iloc[-1] = indicatorArr
 
 
         # Check if candlestick is closed, if so, shift prices.
@@ -181,17 +185,19 @@ class Trader:
 
         # Indicators data
         # TODO: (issue: #2), seperate indicator parameters from the main code and load them dynamically.
-        self.indicatorParameterData = {
+        self.indicatorFunctionParameters = {
             "RSI": {
                 "length": 14,
-                "callback": None,
+                "callback": calcFunc.rsiNew,
                 "args": {},
             },
             "STOCHASTIC": {
                 "length": 14,
-                "callback": None,
+                "callback": calcFunc.stochasticNew,
                 "args": {},
-            },
+            }
+        }
+        self.movingAverageParams = {
             "SMA10": {
                 "length": 10,
                 "callback": None,
