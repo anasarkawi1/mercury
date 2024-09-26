@@ -40,31 +40,30 @@ class Trader:
         # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
         # Define DataFrame for indicator calculations
-        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit'])) # WHY TH IS THIS -1????????? # YEAH ACTUALLY WHY IS IT - 1??? AND MORE IMPORTANTLY, WHY DID U JUST THINK OF REMOVING IT SMH.
+        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit']))
 
+        # Copy openTime to indicatorData for identification
         self.indicatorData['openTime'] = self.data['openTime']
 
 
-        # TODO: Uses manual iteration, optimize for faster results. (pandas.DataFrame.apply?)   
-
-        # Calculate RSI
-        rsiLength = 14
-        #   rsiLength = rsiLength - 1 # Accounts for the index start being set to 0
-        #   for i in range(rsiLength, len(self.data) - 1):
-        #       prices = self.data.loc[i - rsiLength : i, "pChange"].to_numpy() 
-        #       rsi = calcFunc.rsi(prices=prices)
-        #       self.indicatorData.loc[i, "RSI"] = rsi
-        self.indicatorData['RSI'] = self.data['close'].rolling(rsiLength).apply(calcFunc.rsiNew)
-
-        # Calculate Stochastic
-        stochasticLength = 14
-        self.indicatorData['STOCHASTIC'] = self.data['close'].rolling(stochasticLength).apply(calcFunc.stochasticNew)
+        # TODO: Automatic calculations are restricted to close price as the source.
 
 
-        # TODO: Implement a system for the automatic addition of moving averages
-        # self.indicatorData["SMA10"] = self.data['close'].rolling(10).mean()
-        # self.indicatorData["SMA20"] = self.data['close'].rolling(20).mean()
-        # self.indicatorData["SMA50"] = self.data['close'].rolling(50).mean()
+        # Automatic indicator calculations
+        for label, params in self.indicatorFunctionParameters.items():
+            self.indicatorData[label] = self.data['close'].rolling(params['length']).apply(params['callback'])
+
+        # # Indicator calculations
+        # # Calculate RSI
+        # rsiLength = 14
+        # self.indicatorData['RSI'] = self.data['close'].rolling(rsiLength).apply(calcFunc.rsiNew)
+        # 
+        # # Calculate Stochastic
+        # stochasticLength = 14
+        # self.indicatorData['STOCHASTIC'] = self.data['close'].rolling(stochasticLength).apply(calcFunc.stochasticNew)
+
+
+        # Automatic moving average calculation
         for label, params in self.movingAverageParams.items():
             print(params)
             self.indicatorData[label] = self.data['close'].rolling(params['length']).mean()
@@ -76,53 +75,25 @@ class Trader:
     def dataHandler(self, data, closed):
         # Update price
         # Calculation of pChange is done before insertion since it's used in indicator calculations
-        # TODO: URGENT: revise this, probably wrong.
-        # data[len(data) - 1] = calcFunc.pChange(data[4], self.data.loc[len(self.data) - 2, 'close'])
         data[-1] = calcFunc.pChange(new=data[4], old=self.data['close'][len(self.data) - 2])
         self.data.loc[len(self.data) - 1] = data
-        # self.data[-1] = data
 
-
-        # Indicator calculations are done in a seperate array but with data supplied from self.data
 
         # TODO: I feel like there should be anohter check here (current open == update open?)
         self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('openTime')] = data[0]
 
-        # RSI
-        rsi = calcFunc.rsiNew(self.data['close'][-14:])
-        # indicatorArr.append(rsi)
-        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('RSI')] = rsi
 
-        # Stochastic
-        stochastic = calcFunc.stochasticNew(self.data['close'][-14:])
-        # indicatorArr.append(stochastic)
-        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('STOCHASTIC')] = stochastic
+        # Automated indicator calculations
+        for label, params in self.indicatorFunctionParameters.items():
+            indicatorLen = params['length']
+            dataPoints = self.data.iloc[-indicatorLen:, self.data.columns.get_loc('close')]
+            self.data.iloc[-1, self.indicatorData.columns.get_loc(label)] = params['callback'](dataPoints)
 
 
         # Automated moving average calculations
         for label, params in self.movingAverageParams.items():
             maLen = params['length'];
             self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc(label)] = np.mean(self.data['close'][-maLen:])
-
-        # # SMA10
-        # sma10 = np.mean(self.data['close'][-10:])
-        # # indicatorArr.append(sma10)
-        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA10')] = sma10
-        # 
-        # # SMA20
-        # sma20 = np.mean(self.data['close'][-20:])
-        # # indicatorArr.append(sma20)
-        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA20')] = sma20
-        # 
-        # # SMA50
-        # sma50 = np.mean(self.data['close'][-50:])
-        # # indicatorArr.append(sma50)
-        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA50')] = sma50
-
-        # Insert into df
-        # URGENT: the new data is being written into 15th index since thats the length of the df
-        # TODO: Here!!! There's no insertion of appending to the series. Instead, the last row is directly modified. Instead of modifying the row in one go, possibly leading to a mismatch if we appended the indicator values directly to a temp array (could it tho? Not sure, still feels like the following is a better approach, albeit maybe slow) we can modify the records directly for each column.
-        # self.indicatorData.iloc[-1] = indicatorArr
 
 
         # Check if candlestick is closed, if so, shift prices.
