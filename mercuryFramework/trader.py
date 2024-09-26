@@ -98,20 +98,26 @@ class Trader:
         # indicatorArr.append(stochastic)
         self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('STOCHASTIC')] = stochastic
 
-        # SMA10
-        sma10 = np.mean(self.data['close'][-10:])
-        # indicatorArr.append(sma10)
-        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA10')] = sma10
 
-        # SMA20
-        sma20 = np.mean(self.data['close'][-20:])
-        # indicatorArr.append(sma20)
-        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA20')] = sma20
+        # Automated moving average calculations
+        for label, params in self.movingAverageParams.items():
+            maLen = params['length'];
+            self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc(label)] = np.mean(self.data['close'][-maLen:])
 
-        # SMA50
-        sma50 = np.mean(self.data['close'][-50:])
-        # indicatorArr.append(sma50)
-        self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA50')] = sma50
+        # # SMA10
+        # sma10 = np.mean(self.data['close'][-10:])
+        # # indicatorArr.append(sma10)
+        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA10')] = sma10
+        # 
+        # # SMA20
+        # sma20 = np.mean(self.data['close'][-20:])
+        # # indicatorArr.append(sma20)
+        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA20')] = sma20
+        # 
+        # # SMA50
+        # sma50 = np.mean(self.data['close'][-50:])
+        # # indicatorArr.append(sma50)
+        # self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc('SMA50')] = sma50
 
         # Insert into df
         # URGENT: the new data is being written into 15th index since thats the length of the df
