@@ -39,6 +39,15 @@ class Trader:
         # Get raw data
         # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
+
+        # Define the columns for the indicators
+        self.dataColumnsNames = []
+        for name in self.indicatorFunctionParameters:
+            self.dataColumnsNames.append(name)
+        
+        for maName in self.movingAverageParams:
+            self.dataColumnsNames.append(maName)
+
         # Define DataFrame for indicator calculations
         self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit']))
 
@@ -147,7 +156,10 @@ class Trader:
         # Define column names for the pandas DataFrame
         # The addition of indicators are done through the below array. A configuration file should be used to define the below information.
         # TODO: URGENT: These should be derived from indicatorsParameterData. Right now I'm working on the backend of lycon so this is secondary.
-        self.dataColumnsNames = ["openTime", "RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
+        # Below array is litreally used no where... This is a new level of spaghetti code...
+        
+        
+        # self.dataColumnsNames = ["openTime", "RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
         self.dataColumns = {
             'openTime': [],
             'open': [],
@@ -160,47 +172,40 @@ class Trader:
             'RSI': []
         }
 
-        # Indicators data
-        # TODO: (issue: #2), seperate indicator parameters from the main code and load them dynamically.
+        # Indicators and their parameters
         self.indicatorFunctionParameters = {
-            "RSI": {
-                "length": 14,
-                "callback": calcFunc.rsiNew,
-                "args": {},
-            },
             "STOCHASTIC": {
                 "length": 14,
                 "callback": calcFunc.stochasticNew,
                 "args": {},
             }
         }
+
+        # Moving average parameters
         self.movingAverageParams = {
             "SMA10": {
                 "length": 10,
-                "callback": None,
                 "args": {},
             },
             "SMA20": {
                 "length": 20,
-                "callback": None,
                 "args": {},
             },
             "SMA50": {
                 "length": 50,
-                "callback": None,
                 "args": {},
             },
         }
 
 
-        # The connector class determines the specific exchange standardisation class according to the exchange parameter and returns it.
+        # The connector class returns the specific exchange abstraction class.
         # TODO: Implement error handling
         self.exchange = Connector(exchange=exchange, credentials=credentials, options={
                 "mode": mode,
                 "tradingPair": tradingPair,
                 "interval": interval,
                 "limit": limit,
-                "columns": self.dataColumnsNames,
+                "columns": None, # self.dataColumnsNames,
                 "dataHandler": self.dataHandler,
             }).exchange
         try:
@@ -208,10 +213,9 @@ class Trader:
         except:
             print("FAILED TO INITIALISE EXCHANGE")
 
-        # Algo variables
-        self.algo = None
-        self.tradeInProgress = False
 
+    # Order functions
+    # TODO: The output coming from the Connector library isn't standardised. Since there's only one supported exchange it's not a huge deal, however, this should be worked on.
 
     def buy(self, quantity):
         response = self.exchange.buy(quantity=quantity)
@@ -220,49 +224,3 @@ class Trader:
     def sell(self, quantity):
         response = self.exchange.sell(quantity=quantity)
         return response
-    
-    
-    # Algorithm functions
-
-    @dataclass
-    class AlgoDefs:
-        indicatorStrategy: bool
-
-        # Indicators to be used (if indicatorStrategy is true)
-        buyEnabled: list
-        sellEnabled: list
-
-        # Change in moving averages to be used (if indicatorStrategy is false.)
-        # TODO: How the hell would you implement difference between MAs??
-        changeBuy: list
-        changeSell: list
-
-        # Trade information
-        quantity: float
-
-        # Parameters
-        indicators: object # TODO: define the object
-        change: object # TODO: same as above
-
-
-
-    # Recieves an object with the parameters for the algorithm. Each instance should have a single algorithm.
-    def algoCreate(self, algoParams):
-        self.algoParams = algoParams
-
-    # Recieves a state for the drunk
-    def algoRun():
-        pass
-
-
-    def algoCreateOLD(self, algoParams, id=0):
-        # algoParams.quantity = self.exchange.account()["assets"]["USDT"]["free"]
-        # self.algo = algoParams
-        pass
-
-    # Algorithm function. Runs the user-defined algorithm supplied from self.algo.
-    # Current implementation was scrapped, but can be accessed in GitHub Gist. Check issue #5 for more information on the matter.
-    def algoRunOLD(self):
-        if self.algo == None:
-            return False
-        return True

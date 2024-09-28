@@ -39,10 +39,14 @@ class Indicators:
         return rsi
     
     def rsiNew(self, prices):
+        length = len(prices)
         diff = np.diff(prices)
 
-        avgGain = np.average(diff[diff > 0])
-        avgLoss = np.average(np.abs(diff[diff < 0]))
+        gains = diff[diff > 0]
+        avgGain = np.sum(gains) / length
+
+        losses = np.abs(diff[diff < 0])
+        avgLoss = np.sum(losses) / length
 
         rs = avgGain/avgLoss
         rsiVal = 100/(1+rs)

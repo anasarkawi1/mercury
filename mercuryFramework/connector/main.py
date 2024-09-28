@@ -18,7 +18,14 @@ class Connector:
         exchangeInstance = None
         match exchange:
             case "binance":
-                exchangeInstance = Binance(mode=options["mode"], tradingPair=options["tradingPair"], interval=options["interval"], limit=options["limit"], credentials=credentials, wshandler=options["dataHandler"], columns=options["columns"])
+                exchangeInstance = Binance(
+                    mode=options["mode"],
+                    tradingPair=options["tradingPair"],
+                    interval=options["interval"],
+                    limit=options["limit"],
+                    credentials=credentials,
+                    wshandler=options["dataHandler"],
+                    columns=options["columns"])
 
             case _:
                 return "EXCHANGE_INVALID"
