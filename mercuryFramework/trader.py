@@ -40,13 +40,15 @@ class Trader:
         # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
         self.data = self.exchange.historicData()
 
+
         # Define the columns for the indicators
-        self.dataColumnsNames = []
+        self.dataColumnsNames = ['openTime']
         for name in self.indicatorFunctionParameters:
             self.dataColumnsNames.append(name)
         
         for maName in self.movingAverageParams:
             self.dataColumnsNames.append(maName)
+
 
         # Define DataFrame for indicator calculations
         self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit']))
@@ -57,20 +59,9 @@ class Trader:
 
         # TODO: Automatic calculations are restricted to close price as the source.
 
-
         # Automatic indicator calculations
         for label, params in self.indicatorFunctionParameters.items():
             self.indicatorData[label] = self.data['close'].rolling(params['length']).apply(params['callback'])
-
-        # # Indicator calculations
-        # # Calculate RSI
-        # rsiLength = 14
-        # self.indicatorData['RSI'] = self.data['close'].rolling(rsiLength).apply(calcFunc.rsiNew)
-        # 
-        # # Calculate Stochastic
-        # stochasticLength = 14
-        # self.indicatorData['STOCHASTIC'] = self.data['close'].rolling(stochasticLength).apply(calcFunc.stochasticNew)
-
 
         # Automatic moving average calculation
         for label, params in self.movingAverageParams.items():
@@ -85,6 +76,8 @@ class Trader:
         # Update price
         # Calculation of pChange is done before insertion since it's used in indicator calculations
         data[-1] = calcFunc.pChange(new=data[4], old=self.data['close'][len(self.data) - 2])
+
+        # Insert new data
         self.data.loc[len(self.data) - 1] = data
 
 
@@ -154,12 +147,6 @@ class Trader:
         self.updateCallback = updateCallback
 
         # Define column names for the pandas DataFrame
-        # The addition of indicators are done through the below array. A configuration file should be used to define the below information.
-        # TODO: URGENT: These should be derived from indicatorsParameterData. Right now I'm working on the backend of lycon so this is secondary.
-        # Below array is litreally used no where... This is a new level of spaghetti code...
-        
-        
-        # self.dataColumnsNames = ["openTime", "RSI", "STOCHASTIC", "SMA10", "SMA20", "SMA50"]
         self.dataColumns = {
             'openTime': [],
             'open': [],
