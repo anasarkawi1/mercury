@@ -65,7 +65,6 @@ class Trader:
 
         # Automatic moving average calculation
         for label, params in self.movingAverageParams.items():
-            print(params)
             self.indicatorData[label] = self.data['close'].rolling(params['length']).mean()
 
 
