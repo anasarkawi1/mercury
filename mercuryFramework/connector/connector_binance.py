@@ -50,6 +50,7 @@ class Binance:
             "columns": columns,
             "dataHandler": wshandler
         }
+        self.orderCancellAllowStatus = ['NEW', 'PENDING_NEW', 'PARTIALLY_FILLED']
 
     def stop(self):
         self.clients['ws'].stop()
@@ -126,15 +127,65 @@ class Binance:
         pass
 
 
-    # Order functions
+    # Market order functions
     def buy(self, quantity):
         result = self.clients["spot"].new_order(symbol=self.options["tradingPair"], side="BUY", type="MARKET", quantity=quantity)
         return result
-
+    
     def sell(self, quantity):
         result = self.clients["spot"].new_order(symbol=self.options["tradingPair"], side="SELL", type="MARKET", quantity=quantity)
         return result
     
+    # Limit order functions
+    def buyLimit(self, quantity, price):
+        result = self.clients["spot"].new_order(
+            symbol=self.options["tradingPair"],
+            side="BUY",
+            type="LIMIT",
+            timeInForce="GTC",
+            price=price,
+            quantity=quantity,
+            recvWindow=20000)
+        return result
+
+    def sellLimit(self, quantity, price):
+        result = self.clients["spot"].new_order(
+            symbol=self.options["tradingPair"],
+            side="SELL",
+            type="LIMIT",
+            timeInForce="GTC",
+            price=price,
+            quantity=quantity)
+        return result
+    
+    
+    # Order managment functions
+
+    def queryOrder(self, orderId):
+        result = self.clients['spot'].get_order(symbol=self.options['tradingPair'], orderId=orderId)
+        return result
+
+
+    def cancelOrder(self, orderId):
+        result = None
+        # First check if the order is filled
+        query = self.queryOrder(orderId=orderId)
+        if query['status'] not in self.orderCancellAllowStatus:
+            result = {
+                'msg': 'ALREADY_CANCELLED_OR_NXORDER'
+            }
+        else:
+            result = self.clients['spot'].cancel_order(symbol=self.options['tradingPair'], orderId=orderId)
+        return result    
+
+    def currentOrder(self):
+        result = self.clients['spot'].get_open_orders(symbol=self.options['tradingPair'])
+        return result
+
+    def getAllOrders(self):
+        result = self.clients['spot'].get_orders(symbol=self.options['tradingPair'])
+        return result
+
 
     # Data functions
 
