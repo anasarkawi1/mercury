@@ -121,10 +121,11 @@ class Trader:
     def initialise(self, priceLevel=True):
         # Request for data and format it into a pandas dataframe
         self.requestKline()
-        # print('Kline data has been recieved. Initialising WebSocket connection...')
 
-        # Initialise WebSocket client
-        self.exchange.initiateLiveData()
+        # Initiate live data if requested
+        if self.updateCallback != None:
+            # Initialise WebSocket client
+            self.exchange.initiateLiveData()
 
 
     # Deletes the instance
@@ -135,7 +136,15 @@ class Trader:
 
     # Instance initialization
     # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
-    def __init__(self, mode, tradingPair, interval, credentials, limit=150, exchange=None, updateCallback=None):
+    def __init__(
+            self,
+            mode,
+            tradingPair,
+            interval,
+            credentials,
+            limit=150,
+            exchange=None,
+            updateCallback=None):
         # Define options for the trader instance
         self.options = {
             'tradingPair': tradingPair,
@@ -174,13 +183,16 @@ class Trader:
 
         # The connector class returns the specific exchange abstraction class.
         # TODO: Implement error handling
-        self.exchange = Connector(exchange=exchange, credentials=credentials, options={
+        self.exchange = Connector(
+            exchange=exchange,
+            credentials=credentials,
+            options={
                 "mode": mode,
                 "tradingPair": tradingPair,
                 "interval": interval,
                 "limit": limit,
                 "columns": None,
-                "dataHandler": self.dataHandler,
+                "dataHandler": self.dataHandler if self.updateCallback != None else None,
             }).exchange
         try:
             pass
