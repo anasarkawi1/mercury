@@ -5,9 +5,6 @@
 import numpy as np
 
 
-# TODO: Implement custom parameters for indicators (e.g. lengths)
-
-
 # Technical indicators
 class Indicators:
     def pChange(self, old, new):
@@ -85,15 +82,7 @@ class Indicators:
 
     def macd(self, prices):
         pass
-    
-    # Moving average calculations
-    # TODO: A system has to be implemented for moving averages specifically due to their high flexibility. A similar system should be implemented for EMAs they're being implemented.
-    def avg(self, prices):
-        average = 0
-        for price in prices:
-            average += price
-        average = average / len(prices)
-        return average
+
 
 # TODO: Implement level and price action calculations
 class PriceLevel:

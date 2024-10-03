@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mercuryFramework"
-version = "0.0.1-b052"
+version = "0.0.1-b057"
 dependencies = [
     "numpy",
     "pandas",
-    "binance",
+    "binance-connector",
     "dataclasses"
 ]

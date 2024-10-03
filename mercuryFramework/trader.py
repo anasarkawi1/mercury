@@ -14,7 +14,8 @@ from dataclasses import dataclass
 
 # Import own library
 from . import class_calculation
-from .connector.main import Connector
+# from .connector.main import Connector
+from hermesConnector import Connector
 
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
@@ -30,14 +31,12 @@ calcFunc = class_calculation.Indicators()
 
 # Data Request class
 # Used for the retrieval and update of historical and live price data.
-# TODO: Fix function return values
-# TODO: Make the DataFrame length a constant
 class Trader:
     # Request kline data
-    # Data format: [open time, open price, high price, low price, close price, volume, close time, quote asset volume, number of trades, taker buy base asset volume, taker buy quote asset volume, unused]
     def requestKline(self):
         # Get raw data
-        # TODO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
+        # TO-DO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
+        # FIX: Mention this in the documentation. There are unusual use cases where direct access would be useful.
         self.data = self.exchange.historicData()
 
 
@@ -99,8 +98,6 @@ class Trader:
 
         # Check if candlestick is closed, if so, shift prices.
         # implement for indicator data
-        # TODO: URGENT: The drop happens and the index gets shifted which causes a race condition that throws and exception
-        # TODO: This issue still persists?? Possible solution: Call the external callback when the functions of the if statement gets done.
         if closed:
             self.data.drop(inplace=True, index=0)
             self.data.reset_index(inplace=True)
@@ -112,6 +109,9 @@ class Trader:
             self.indicatorData.drop(inplace=True, axis=1, columns='index')
             self.indicatorData.loc[len(self.indicatorData)] = [np.nan for x in range(len(self.indicatorData.columns))]
 
+            self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
+            return
+
         # Return update to original instance
         self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
 
@@ -121,7 +121,7 @@ class Trader:
     def initialise(self, priceLevel=True):
         # Request for data and format it into a pandas dataframe
         self.requestKline()
-        print('Kline data has been recieved. Initialising WebSocket connection...')
+        # print('Kline data has been recieved. Initialising WebSocket connection...')
 
         # Initialise WebSocket client
         self.exchange.initiateLiveData()
@@ -132,6 +132,7 @@ class Trader:
         self.exchange.stop()
         self = None
 
+
     # Instance initialization
     # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
     def __init__(self, mode, tradingPair, interval, credentials, limit=150, exchange=None, updateCallback=None):
@@ -140,23 +141,10 @@ class Trader:
             'tradingPair': tradingPair,
             'interval': interval,
             'limit': limit,
-            # 'threshold': 0.25
         }
 
+        # Price update callback
         self.updateCallback = updateCallback
-
-        # Define column names for the pandas DataFrame
-        self.dataColumns = {
-            'openTime': [],
-            'open': [],
-            'high': [],
-            'low': [],
-            'close': [],
-            'closeTime': [],
-            'volume': [],
-            'pChange': [],
-            'RSI': []
-        }
 
         # Indicators and their parameters
         self.indicatorFunctionParameters = {
@@ -191,7 +179,7 @@ class Trader:
                 "tradingPair": tradingPair,
                 "interval": interval,
                 "limit": limit,
-                "columns": None, # self.dataColumnsNames,
+                "columns": None,
                 "dataHandler": self.dataHandler,
             }).exchange
         try:
@@ -201,7 +189,7 @@ class Trader:
 
 
     # Order functions
-    # TODO: The output coming from the Connector library isn't standardised. Since there's only one supported exchange it's not a huge deal, however, this should be worked on.
+    # TODO: The output coming from the Connector library isn't standardised. Since there's only one supported exchange it's not a huge deal.
 
     def buy(self, quantity):
         response = self.exchange.buy(quantity=quantity)
