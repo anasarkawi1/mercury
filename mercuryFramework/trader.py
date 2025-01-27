@@ -206,7 +206,15 @@ class Trader:
     def buy(self, quantity):
         response = self.exchange.buy(quantity=quantity)
         return response
+    
+    def costBuy(self, cost):
+        response = self.exchange.costBuy(cost=cost)
+        return response
 
     def sell(self, quantity):
         response = self.exchange.sell(quantity=quantity)
+        return response
+    
+    def costSell(self, cost):
+        response = self.exchange.costSell(cost=cost)
         return response
