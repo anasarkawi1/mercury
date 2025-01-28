@@ -167,3 +167,4 @@ _test_*
 scratchpad.txt
 funcTest.py
 scratchpads_and_tests/
+*.bat
