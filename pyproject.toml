@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mercuryFramework"
-version = "0.1.5"
+version = "0.1.6"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -17,7 +17,7 @@ dependencies = [
     "pandas",
     "binance-connector",
     "dataclasses",
-    "hermesConnector==0.0.5"
+    "hermesConnector==0.0.6"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
