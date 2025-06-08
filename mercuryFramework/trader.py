@@ -4,26 +4,30 @@
 
 
 # Import libraries
-from binance.spot import Spot
-from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient as WebSocketClient
 import pandas as pd
-from pandas import DataFrame, concat
+from pandas import DataFrame
 import numpy as np
-import json
-from dataclasses import dataclass
+
+from mercuryFramework.mercury_exceptions import GenericMercuryError, InsufficientOrderArgumentsError, OrderSideError, QtyAndNotionalError
 
 # Import own library
 from . import class_calculation
 # from .connector.main import Connector
+
+# Import Hermes and its modules
 from hermesConnector import Connector
+from hermesConnector.hermes_enums import OrderSide, TimeInForce
+from hermesConnector.models import MarketOrderResult, MarketOrderQtyParams, LimitOrderBaseParams, LimitOrderResult
 
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+
 # Sets pandas disable option
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
+
 
 # Initialise calculation functions
 calcFunc = class_calculation.Indicators()
@@ -116,7 +120,6 @@ class Trader:
         self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
 
     
-
     # Initialize data frame
     def initialise(self, priceLevel=True):
         # Request for data and format it into a pandas dataframe
@@ -201,20 +204,118 @@ class Trader:
 
 
     # Order functions
-    # TODO: The output coming from the Connector library isn't standardised. Since there's only one supported exchange it's not a huge deal.
 
-    def buy(self, quantity):
-        response = self.exchange.buy(quantity=quantity)
-        return response
-    
-    def costBuy(self, cost):
-        response = self.exchange.costBuy(cost=cost)
-        return response
+    def marketOrder(
+            self,
+            side: OrderSide,
+            qty=None,
+            notional=None,
+            tif=TimeInForce.DAY
+    ) -> MarketOrderResult:
+        
+        # Check if too many arguments were supplied
+        if (
+            (qty        != None) and
+            (notional   != None)
+        ):
+            raise QtyAndNotionalError
+        
+        # Check if no arguments were supplied
+        if (
+            (qty == None) and
+            (notional == None)
+        ):
+            raise InsufficientOrderArgumentsError
+        
+        # Check if the price information are supplied properly
+        if (qty != None):
+            if (qty <= 0):
+                raise InsufficientOrderArgumentsError
+        elif (notional != None):
+            if (notional <= 0):
+                raise InsufficientOrderArgumentsError
 
-    def sell(self, quantity):
-        response = self.exchange.sell(quantity=quantity)
-        return response
+        # Check if order side was supplied
+        if (isinstance(side, OrderSide) == False):
+            raise OrderSideError
+        
+        # Submit order
+        orderResult = None
+        if (qty != None):
+            req = MarketOrderQtyParams(
+                side=side,
+                tif=tif,
+                qty=qty)
+            orderResult = self.exchange.marketOrderQty(req)
+
+        # If the submit method fails it will just throw an error. If a None is returned, its an undefined edge case.
+        if (orderResult == None):
+            raise GenericMercuryError
+        
+        return orderResult
     
-    def costSell(self, cost):
-        response = self.exchange.costSell(cost=cost)
-        return response
+
+    def limitOrder(
+            self,
+            side: OrderSide,
+            limitPrice,
+            qty=None,
+            tif=TimeInForce.DAY
+    ) -> LimitOrderResult:
+        
+        # Check if no arguments were supplied
+        if (
+            (qty == None) or
+            (limitPrice == None)
+            ):
+            raise InsufficientOrderArgumentsError
+        
+        # Check if the price information are supplied properly
+        if (
+            (qty <= 0) or
+            (limitPrice <= 0)
+            ):
+            raise InsufficientOrderArgumentsError
+        
+        # Check if all the arguments were supplied was supplied
+        if (isinstance(side, OrderSide) == False):
+            raise OrderSideError
+        
+        # Submit order
+        orderResult = None
+        if (qty != None):
+            req = LimitOrderBaseParams(
+                side=side,
+                limitPrice=limitPrice,
+                qty=qty,
+                tif=tif
+            )
+            orderResult = self.exchange.limitOrder(req)
+
+        # If the submit method fails it will just throw an error. If a None is returned, its an undefined edge case.
+        if (orderResult == None):
+            raise GenericMercuryError
+        
+        return orderResult
+
+
+    # Deprecated, used on version 0.1.8 and prior.
+    def _deprecated_buy(self, quantity):
+        # response = self.exchange.buy(quantity=quantity)
+        # return response
+        pass
+    
+    def _deprecated_costBuy(self, cost):
+        # response = self.exchange.costBuy(cost=cost)
+        # return response
+        pass
+
+    def _deprecated_sell(self, quantity):
+        # response = self.exchange.sell(quantity=quantity)
+        # return response
+        pass
+    
+    def _deprecated_costSell(self, cost):
+        # response = self.exchange.costSell(cost=cost)
+        # return response
+        pass

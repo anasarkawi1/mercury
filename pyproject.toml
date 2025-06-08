@@ -17,7 +17,7 @@ dependencies = [
     "pandas",
     "binance-connector",
     "dataclasses",
-    "hermesConnector==0.0.9"
+    "hermesConnector==0.1.0"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
