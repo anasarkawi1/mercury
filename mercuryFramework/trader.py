@@ -9,7 +9,7 @@ from pandas import DataFrame
 import numpy as np
 from typing import Literal, Tuple
 
-from mercuryFramework.mercury_exceptions import GenericMercuryError, InsufficientOrderArgumentsError, OrderSideError, QtyAndNotionalError
+from mercuryFramework.mercury_exceptions import GenericMercuryError, InsufficientOrderArgumentsError, OrderSideError, QtyAndNotionalError, TimeInForceError
 
 # Import own library
 from . import class_calculation
@@ -240,6 +240,10 @@ class Trader:
         if (isinstance(side, OrderSide) == False):
             raise OrderSideError
         
+        # Check if time in force parameter was supplied
+        if (isinstance(tif, TimeInForce) == False):
+            raise TimeInForceError
+        
         # Submit order
         orderResult = None
         if (qty != None):
@@ -267,20 +271,21 @@ class Trader:
         # Check if no arguments were supplied
         if (
             (qty == None) or
-            (limitPrice == None)
-            ):
+            (limitPrice == None)):
             raise InsufficientOrderArgumentsError
         
         # Check if the price information are supplied properly
         if (
             (qty <= 0) or
-            (limitPrice <= 0)
-            ):
+            (limitPrice <= 0)):
             raise InsufficientOrderArgumentsError
         
         # Check if all the arguments were supplied was supplied
         if (isinstance(side, OrderSide) == False):
             raise OrderSideError
+        
+        if (isinstance(tif, TimeInForce) == False):
+            raise TimeInForceError
         
         # Submit order
         orderResult = None

@@ -12,7 +12,8 @@ ErrorStringLiteral = Literal[
     "QTY_AND_NOTIONAL_FOUND",
     "ORDER_SIDE_NOT_SUPPLIED",
     "ORDER_ARGUMENTS_INSUFFICIENT",
-    "CREDENTIALS_ERROR"
+    "CREDENTIALS_ERROR",
+    "ORDER_ARGUMENT_TIME_IN_FORCE_ERROR"
 ]
 
 class MercuryBaseException(Exception):
@@ -43,3 +44,7 @@ class InsufficientOrderArgumentsError(MercuryBaseException):
 class CredentialsError(MercuryBaseException):
     errCode     = 1004
     errStr      = "CREDENTIALS_ERROR"
+
+class TimeInForceError(MercuryBaseException):
+    errCode     = 1005
+    errStr      = "ORDER_ARGUMENT_TIME_IN_FORCE_ERROR"
