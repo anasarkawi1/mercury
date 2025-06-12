@@ -11,7 +11,8 @@ ErrorStringLiteral = Literal[
     "GENERIC_MERCURY_ERROR",
     "QTY_AND_NOTIONAL_FOUND",
     "ORDER_SIDE_NOT_SUPPLIED",
-    "ORDER_ARGUMENTS_INSUFFICIENT"
+    "ORDER_ARGUMENTS_INSUFFICIENT",
+    "CREDENTIALS_ERROR"
 ]
 
 class MercuryBaseException(Exception):
@@ -38,3 +39,7 @@ class OrderSideError(MercuryBaseException):
 class InsufficientOrderArgumentsError(MercuryBaseException):
     errCode     = 1003
     errStr      = "ORDER_ARGUMENTS_INSUFFICIENT"
+
+class CredentialsError(MercuryBaseException):
+    errCode     = 1004
+    errStr      = "CREDENTIALS_ERROR"

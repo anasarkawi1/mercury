@@ -7,6 +7,7 @@
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
+from typing import Literal, Tuple
 
 from mercuryFramework.mercury_exceptions import GenericMercuryError, InsufficientOrderArgumentsError, OrderSideError, QtyAndNotionalError
 
@@ -18,6 +19,7 @@ from . import class_calculation
 from hermesConnector import Connector
 from hermesConnector.hermes_enums import OrderSide, TimeInForce
 from hermesConnector.models import MarketOrderResult, MarketOrderQtyParams, LimitOrderBaseParams, LimitOrderResult
+from hermesConnector.timeframe import TimeFrame
 
 
 # Workaround for asyncio supression of KeyboardInterrupt on Windows.
@@ -36,12 +38,77 @@ calcFunc = class_calculation.Indicators()
 # Data Request class
 # Used for the retrieval and update of historical and live price data.
 class Trader:
+
+    # Instance initialization
+    # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
+    def __init__(
+            self,
+            mode: Literal["live", "test"],
+            tradingPair: str,
+            interval: TimeFrame,
+            credentials: Tuple[str, str],
+            exchange: str,      # TODO: This should be turned into a proper Enum.
+            limit=150,
+            updateCallback=None):
+        # Define options for the trader instance
+        self.options = {
+            'tradingPair': tradingPair,
+            'interval': interval,
+            'limit': limit,
+        }
+
+        # Price update callback
+        self.updateCallback = updateCallback
+
+        # Indicators and their parameters
+        self.indicatorFunctionParameters = {
+            "STOCHASTIC": {
+                "length": 14,
+                "callback": calcFunc.stochasticNew,
+                "args": {},
+            }
+        }
+
+        # Moving average parameters
+        self.movingAverageParams = {
+            "SMA10": {
+                "length": 10,
+                "args": {},
+            },
+            "SMA20": {
+                "length": 20,
+                "args": {},
+            },
+            "SMA50": {
+                "length": 50,
+                "args": {},
+            },
+        }
+
+
+        # The connector class returns the specific exchange abstraction class.
+        # TODO: Implement error handling
+        self.exchange = Connector(
+            exchange=exchange,
+            credentials=credentials,
+            options={
+                "mode": mode,
+                "tradingPair": tradingPair,
+                "interval": interval,
+                "limit": limit,
+                "columns": None,
+                "dataHandler": (self.dataHandler if self.updateCallback != None else None),
+            }).exchange
+        try:
+            pass
+        except:
+            print("FAILED TO INITIALISE EXCHANGE")
+
+    # TODO: Should be done?
     # Request kline data
     def requestKline(self):
         # Get raw data
-        # TO-DO: Prevent access outside of the class. Direct access to this variable could cause errors when a price update occurs.
-        # FIX: Mention this in the documentation. There are unusual use cases where direct access would be useful.
-        self.data = self.exchange.historicData()
+        self.data: DataFrame = self.exchange.historicData()
 
 
         # Define the columns for the indicators
@@ -54,7 +121,7 @@ class Trader:
 
 
         # Define DataFrame for indicator calculations
-        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(self.options['limit']))
+        self.indicatorData = DataFrame(columns=self.dataColumnsNames, index=range(len(self.data)))
 
         # Copy openTime to indicatorData for identification
         self.indicatorData['openTime'] = self.data['openTime']
@@ -135,72 +202,6 @@ class Trader:
     def delete(self):
         self.exchange.stop()
         self = None
-
-
-    # Instance initialization
-    # TODO: Improve initialisation of `self` values. The value definitions are messy and naming convention is confusing.
-    def __init__(
-            self,
-            mode,
-            tradingPair,
-            interval,
-            credentials,
-            limit=150,
-            exchange=None,
-            updateCallback=None):
-        # Define options for the trader instance
-        self.options = {
-            'tradingPair': tradingPair,
-            'interval': interval,
-            'limit': limit,
-        }
-
-        # Price update callback
-        self.updateCallback = updateCallback
-
-        # Indicators and their parameters
-        self.indicatorFunctionParameters = {
-            "STOCHASTIC": {
-                "length": 14,
-                "callback": calcFunc.stochasticNew,
-                "args": {},
-            }
-        }
-
-        # Moving average parameters
-        self.movingAverageParams = {
-            "SMA10": {
-                "length": 10,
-                "args": {},
-            },
-            "SMA20": {
-                "length": 20,
-                "args": {},
-            },
-            "SMA50": {
-                "length": 50,
-                "args": {},
-            },
-        }
-
-
-        # The connector class returns the specific exchange abstraction class.
-        # TODO: Implement error handling
-        self.exchange = Connector(
-            exchange=exchange,
-            credentials=credentials,
-            options={
-                "mode": mode,
-                "tradingPair": tradingPair,
-                "interval": interval,
-                "limit": limit,
-                "columns": None,
-                "dataHandler": self.dataHandler if self.updateCallback != None else None,
-            }).exchange
-        try:
-            pass
-        except:
-            print("FAILED TO INITIALISE EXCHANGE")
 
 
     # Order functions
@@ -298,24 +299,3 @@ class Trader:
         
         return orderResult
 
-
-    # Deprecated, used on version 0.1.8 and prior.
-    def _deprecated_buy(self, quantity):
-        # response = self.exchange.buy(quantity=quantity)
-        # return response
-        pass
-    
-    def _deprecated_costBuy(self, cost):
-        # response = self.exchange.costBuy(cost=cost)
-        # return response
-        pass
-
-    def _deprecated_sell(self, quantity):
-        # response = self.exchange.sell(quantity=quantity)
-        # return response
-        pass
-    
-    def _deprecated_costSell(self, cost):
-        # response = self.exchange.costSell(cost=cost)
-        # return response
-        pass

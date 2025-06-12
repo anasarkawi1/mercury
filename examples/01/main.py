@@ -87,7 +87,14 @@ def callback(trader, lastPrice, lastIndicator):
 
 # Define trading object and initialise it.
 # The definition of the trading object is done by making an instance of the DataReq class with the target chart settings (i.e. the asset to be traded, chart interval, exchange, etc.) 
-trader = data.Trader(mode='test', tradingPair='ETHUSDT', interval='1m', limit=30, exchange='binance', credentials=[apiKey, apiSecret], updateCallback=callback)
+trader = data.Trader(
+	mode='test',
+	tradingPair='ETHUSDT',
+	interval='1m',
+	limit=30,
+	exchange='binance',
+	credentials=[apiKey, apiSecret],
+	updateCallback=callback)
 
 trader.initialise()
 
