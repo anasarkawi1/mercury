@@ -147,7 +147,7 @@ class Trader:
         data[-1] = calcFunc.pChange(new=data[4], old=self.data['close'][len(self.data) - 2])
 
         # Insert new data
-        self.data.loc[len(self.data) - 1] = data
+        self.data.iloc[-1] = data
 
 
         # TODO: I feel like there should be anohter check here (current open == update open?)
@@ -163,8 +163,9 @@ class Trader:
 
         # Automated moving average calculations
         for label, params in self.movingAverageParams.items():
-            maLen = params['length'];
-            self.indicatorData.iloc[-1, self.indicatorData.columns.get_loc(label)] = np.mean(self.data['close'][-maLen:])
+            maLen = params['length']
+            maVal = np.mean(self.data['close'][-maLen:])
+            self.indicatorData[label].iloc[-1] = maVal
 
 
         # Check if candlestick is closed, if so, shift prices.
@@ -173,18 +174,26 @@ class Trader:
             self.data.drop(inplace=True, index=0)
             self.data.reset_index(inplace=True)
             self.data.drop(inplace=True, axis=1, columns='index')
-            self.data.loc[len(self.data)] = [np.nan for x in range(len(data))]
+            self.data.loc[len(self.data)] = [np.nan for x in range(len(data))] # type: ignore
 
             self.indicatorData.drop(inplace=True, index=0)
             self.indicatorData.reset_index(inplace=True)
             self.indicatorData.drop(inplace=True, axis=1, columns='index')
-            self.indicatorData.loc[len(self.indicatorData)] = [np.nan for x in range(len(self.indicatorData.columns))]
+            self.indicatorData.loc[len(self.indicatorData)] = [np.nan for x in range(len(self.indicatorData.columns))] # type: ignore
 
-            self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
+            if (self.updateCallback != None):
+                self.updateCallback(
+                    self,
+                    self.data.iloc[-1],
+                    self.indicatorData.iloc[-1])
             return
 
         # Return update to original instance
-        self.updateCallback(self, self.data.iloc[-1], self.indicatorData.iloc[-1])
+        if (self.updateCallback != None):
+            self.updateCallback(
+                self,
+                self.data.iloc[-1],
+                self.indicatorData.iloc[-1])
 
     
     # Initialize data frame
